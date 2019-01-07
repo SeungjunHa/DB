@@ -1,0 +1,21 @@
+total 388
+-rw-rw-r-- 1 2014313873      0 Nov 22 19:32 asdf.txt
+-rw-rw-r-- 1 2014313873     15 Nov 21 22:09 hosts.txt
+-rw-rw-r-- 1 2014313873    117 Nov 22 13:59 input1.txt
+-rw-rw-r-- 1 2014313873    248 Nov 20 12:45 input2.txt
+-rw-rw-r-- 1 2014313873  10110 Nov 20 12:45 input3.txt
+-rw-rw-r-- 1 2014313873     78 Nov 21 23:13 input.txt
+-rw-rw-r-- 1 2014313873   1231 Nov 22 17:32 makefile
+-rw-rw-r-- 1 2014313873   1291 Nov 22 18:02 my_output1.txt
+-rw-rw-r-- 1 2014313873   2404 Nov 22 18:02 my_output2.txt
+-rw-rw-r-- 1 2014313873 121369 Nov 22 17:42 my_output3.txt
+-rw-rw-r-- 1 2014313873   2001 Nov 21 23:13 my_output.txt
+-rw-rw-r-- 1 2014313873    110 Nov 21 22:07 output1.txt
+-rw-rw-r-- 1 2014313873    241 Nov 20 12:45 output2.txt
+-rw-rw-r-- 1 2014313873  10100 Nov 20 12:45 output3.txt
+-rw------- 1 2014313873      0 Nov 22 19:02 perf.data
+-rwxrwxr-x 1 2014313873 144200 Nov 22 18:02 project3
+-rw-rw-r-- 1 2014313873  36973 Nov 22 17:55 project3.c
+-rwxrwxr-x 1 2014313873   8600 Nov 22 01:22 te
+-rw-rw-r-- 1 2014313873     79 Nov 22 01:22 te.c
+drwxrwxr-x 2 2014313873   4096 Nov 21 22:06 test
