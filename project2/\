@@ -1,0 +1,202 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <omp.h>
+#include <time.h>
+#include <math.h>
+
+#define SINGULAR_MATRIX_ERROR do{\
+	printf("Sigular Matrix Error\n");\
+	exit(-1);\
+}while(0)\
+
+#define SWAP(a,b) do{\
+	double temp;\
+	temp = a;\
+	a = b;\
+	b = temp;\
+}while(0)
+
+#define SWAP_INT(a,b) do{\
+	int temp;\
+	temp = a;\
+	a = b;\
+	b = temp;\
+}while(0)
+
+#define EPSILON 0.0000001
+
+double **C, **A, **L, **U;
+int *P;
+int N, T;
+
+void randon_generalization();
+
+void random_generalization()
+{
+	struct drand48_data Rand_Buffer;
+	srand48_r(time(NULL)%3123124124, &Rand_Buffer);
+	omp_set_num_threads(T);
+
+	#pragma omp parallel
+	{	
+		#pragma omp for
+		for(int i=0;i<N;i++) {
+			for(int j=0;j<N;j++) {
+				drand48_r(&Rand_Buffer, &A[i][j]);
+				A[i][j] = A[i][j]*100.0 + 0.0001f;
+				C[i][j] = A[i][j];
+				if(i==j)
+					L[i][j] = 1.0f;
+			}
+		}
+	}
+}
+int main(int argc, char *argv[])
+{
+	double Rand_start = omp_get_wtime();
+
+	if(argc != 3) {
+		printf("Error Usage : <./project2 Size Threads>\n");
+		exit(EXIT_FAILURE);
+	}
+	N = atoi(argv[1]);
+	T = atoi(argv[2]);
+	//printf("%d %d\n",N,T);
+
+	omp_set_num_threads(T);
+	C = (double **)malloc(sizeof(double *)*N);
+	A = (double **)malloc(sizeof(double *)*N);
+	L = (double **)malloc(sizeof(double *)*N);
+	U = (double **)malloc(sizeof(double *)*N);
+	P = (int *)calloc(N, sizeof(int));
+	for(int i=0;i<N;i++) {
+		C[i] = (double *)calloc(N, sizeof(double));
+		A[i] = (double *)calloc(N, sizeof(double));
+		L[i] = (double *)calloc(N, sizeof(double));
+		U[i] = (double *)calloc(N, sizeof(double));
+	}
+	
+	random_generalization();
+	printf("Random Time : %lf sec.\n", Rand_start-omp_get_wtime());
+	double Gaussian_start = omp_get_wtime();
+
+	double max;
+	double tmp;
+	int k = 0, k_ = 0, i = 0, j = 0;	
+	for(i=0;i<N;i++)
+		P[i] = i;
+	
+	for(k=0;k<N;k++) {
+		max = 0.0f;
+		for(i=k;i<N;i++) {
+			tmp = A[i][k];
+			if(A[i][k] < 0)
+				tmp = -A[i][k];
+			if(max < tmp) {
+				max = tmp;
+				k_ = i;
+			}
+		}
+	
+		if(max == 0)
+			SINGULAR_MATRIX_ERROR;
+	
+		SWAP_INT(P[k], P[k_]);		
+		for(i=0;i<=N-1;i++)
+			SWAP(A[k][i], A[k_][i]);
+		for(i=0;i<=k-1;i++)
+			SWAP(L[k][i], L[k_][i]);
+
+		U[k][k] = A[k][k];
+		
+		for(i=k+1;i<N;i++) {
+			L[i][k] = A[i][k]/U[k][k];
+			U[k][i] = A[k][i];
+		}
+	
+		//#pragma omp parallel
+		//{
+		//	#pragma omp for
+			for(i=k+1;i<N;i++) {
+				for(j=k+1;j<N;j++) {
+					A[i][j] = A[i][j] - L[i][k]*U[k][j];
+				}
+			}
+		//}	
+	}
+	double **S = (double **)malloc(sizeof(double *)*N);
+	for(i=0;i<N;i++)
+		S[i] = (double *)calloc(N, sizeof(double));
+	
+	double sum = 0.0f;
+	for(i=0;i<N;i++) {
+		for(j=0;j<N;j++) {
+			for(k=0;k<N;k++)
+				sum = sum + L[i][k]*U[k][j];
+			S[i][j]=sum;
+			sum = 0.0f;
+		}
+	}
+/*
+	printf("Array P\n");
+	for(i=0;i<N;i++)
+		printf("%d\n",P[i]);
+	printf("\n");
+	
+	printf("Array L\n");
+	for(i=0;i<N;i++) {
+		for(int j=0;j<N;j++)
+			printf("%lf ",L[i][j]);
+		printf("\n");
+	}
+	printf("\n");
+
+	printf("Array U\n");
+	for(i=0;i<N;i++) {
+		for(int j=0;j<N;j++)
+			printf("%lf ",U[i][j]);
+		printf("\n");
+	}
+	printf("\n");
+
+	printf("Array C\n");
+	for(i=0;i<N;i++) {
+		for(j=0;j<N;j++)
+			printf("%lf ",C[P[i]][j]);
+		printf("\n");
+	}
+	printf("\n");
+
+	printf("Array S\n");
+	for(i=0;i<N;i++) {
+		for(j=0;j<N;j++)
+			printf("%lf ",S[i][j]);
+		printf("\n");
+	}
+	printf("\n");*/
+	printf("Gaussian Time : %lf sec.\n", Gaussian_start-omp_get_wtime());
+	double Check_start = omp_get_wtime();
+	//#pragma omp parallel
+	//{
+	//	#pragma omp for
+		for(i=0;i<N;i++) {
+			for(j=0;j<N;j++)
+				if(fabs(C[P[i]][j]- S[i][j]) >  EPSILON) 
+					printf("------[%d %d],Wrong Answer------\n",P[i],j);		
+		}
+	//}
+	printf("Check Time : %lf sec.\n", Check_start-omp_get_wtime());
+	for(i=0;i<N;i++) {
+		free(A[i]);
+		free(L[i]);
+		free(U[i]);
+		free(C[i]);
+	}
+	free(P);
+	free(A);	
+	free(L);
+	free(U);
+	free(C);
+
+	return 0;
+}
